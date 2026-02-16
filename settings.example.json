@@ -1,0 +1,60 @@
+{
+  "env": {
+    "TRACE_TO_LANGFUSE": "true",
+    "LANGFUSE_PUBLIC_KEY": "pk-lf-your-public-key-here",
+    "LANGFUSE_SECRET_KEY": "sk-lf-your-secret-key-here",
+    "LANGFUSE_HOST": "https://cloud.langfuse.com"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run src/langfuse/langfuse_session_start_hook.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run src/langfuse/langfuse_stop_hook.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run src/langfuse/langfuse_subagent_start_hook.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run src/langfuse/langfuse_subagent_stop_hook.py"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run src/langfuse/langfuse_session_end_hook.py"
+          }
+        ]
+      }
+    ]
+  }
+}
