@@ -2,12 +2,13 @@
 """Tracks session end events in Langfuse."""
 
 import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from src.langfuse.common import (
+from common import (
     read_hook_input,
     is_tracing_enabled,
     create_langfuse_client,
@@ -43,10 +44,23 @@ def main() -> None:
         started_at = session_state.get("started_at")
         turn_count = session_state.get("turn_count", 0)
 
+        # Parse duration with fault tolerance
         duration_seconds = None
         if started_at:
-            start_time = datetime.fromisoformat(started_at)
-            duration_seconds = (datetime.now(timezone.utc) - start_time).total_seconds()
+            try:
+                start_time = datetime.fromisoformat(started_at)
+                duration_seconds = (datetime.now(timezone.utc) - start_time).total_seconds()
+
+                # Validate duration_seconds is positive and reasonable (within 24 hours)
+                if duration_seconds < 0:
+                    log("ERROR", f"Invalid duration_seconds (negative): {duration_seconds}")
+                    duration_seconds = None
+                elif duration_seconds > 86400:  # 24 hours
+                    log("ERROR", f"Duration_seconds exceeds 24 hours: {duration_seconds}")
+                    duration_seconds = None
+            except ValueError as e:
+                log("ERROR", f"Failed to parse started_at timestamp '{started_at}': {e}")
+                duration_seconds = None
 
         output = {
             "status": "session_ended",
@@ -56,29 +70,60 @@ def main() -> None:
         if duration_seconds is not None:
             output["duration_seconds"] = round(duration_seconds, 1)
 
-        with propagate_attributes(session_id=session_id):
-            with langfuse.start_as_current_span(
-                name="Session End",
-                input={"reason": reason},
-                metadata={
-                    "source": "claude-code",
-                    "event": "session_end",
-                    "end_reason": reason,
-                    "total_turns": str(turn_count),
-                },
-            ) as span:
-                span.update(output=output)
+        # Wrap Langfuse operations with timeout and error handling
+        try:
+            with propagate_attributes(session_id=session_id):
+                with langfuse.start_as_current_span(
+                    name="Session End",
+                    input={"reason": reason},
+                    metadata={
+                        "source": "claude-code",
+                        "event": "session_end",
+                        "end_reason": reason,
+                        "total_turns": str(turn_count),
+                    },
+                ) as span:
+                    span.update(output=output)
+        except TimeoutError as e:
+            log("ERROR", f"Timeout during Langfuse span operation: {e}\n{traceback.format_exc()}")
+        except Exception as e:
+            log("ERROR", f"Failed to create/update session end span: {e}\n{traceback.format_exc()}")
 
-        langfuse.flush()
+        # Flush with error handling
+        try:
+            langfuse.flush()
+        except TimeoutError as e:
+            log("ERROR", f"Timeout during langfuse.flush(): {e}\n{traceback.format_exc()}")
+        except Exception as e:
+            log("ERROR", f"Failed to flush Langfuse: {e}\n{traceback.format_exc()}")
 
-        if session_id in state:
-            del state[session_id]
-        save_state(state)
+        # Delete session state with fault tolerance
+        state_saved = False
+        try:
+            if session_id in state:
+                # Save state to temp variable before deletion
+                state_backup = dict(state)
+                del state[session_id]
+                save_state(state)
+                state_saved = True
+        except Exception as e:
+            log("ERROR", f"Failed to delete session state for {session_id}: {e}\n{traceback.format_exc()}")
+            if not state_saved:
+                try:
+                    # Attempt to restore from backup if save failed
+                    save_state(state_backup)
+                except Exception as restore_error:
+                    log("ERROR", f"Failed to restore state backup: {restore_error}")
 
     except Exception as e:
-        log("ERROR", f"Failed to track session end: {e}")
+        log("ERROR", f"Failed to track session end: {e}\n{traceback.format_exc()}")
     finally:
-        langfuse.shutdown()
+        # Shutdown with null check and error handling
+        if langfuse is not None:
+            try:
+                langfuse.shutdown()
+            except Exception as e:
+                log("ERROR", f"Failed to shutdown Langfuse client: {e}\n{traceback.format_exc()}")
 
     sys.exit(0)
 
