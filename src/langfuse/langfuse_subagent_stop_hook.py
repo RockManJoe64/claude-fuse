@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tracks subagent stop events in Langfuse."""
 
+import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +17,7 @@ from src.langfuse.common import (
     load_state,
     save_state,
 )
+from src.langfuse.transcript import create_trace, parse_transcript_into_turns
 
 from langfuse import propagate_attributes
 
@@ -53,7 +55,46 @@ def main() -> None:
             except (ValueError, TypeError):
                 pass
 
-        output = {"status": "subagent_stopped", "agent_type": agent_type}
+        # Parse agent transcript
+        total_turns = 0
+        agent_transcript_path = hook_input.get("agent_transcript_path")
+        if agent_transcript_path:
+            transcript_file = Path(agent_transcript_path)
+            if transcript_file.exists():
+                try:
+                    lines = transcript_file.read_text(encoding="utf-8").strip().split("\n")
+                    messages = []
+                    for line in lines:
+                        try:
+                            messages.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            continue
+
+                    turns = parse_transcript_into_turns(messages)
+                    total_turns = len(turns)
+
+                    for i, (user_msg, assistant_msgs, tool_results) in enumerate(turns):
+                        create_trace(
+                            langfuse,
+                            session_id,
+                            i + 1,
+                            user_msg,
+                            assistant_msgs,
+                            tool_results,
+                            name_prefix=f"[{agent_type}]",
+                            extra_metadata={"agent_id": agent_id, "agent_type": agent_type},
+                        )
+
+                    debug(f"Processed {total_turns} subagent turns for {agent_type} ({agent_id})")
+                except Exception as e:
+                    log("ERROR", f"Failed to parse agent transcript: {e}")
+            else:
+                debug(f"Agent transcript not found: {agent_transcript_path}")
+        else:
+            debug("No agent_transcript_path in hook input")
+
+        # Create lifecycle span
+        output = {"status": "subagent_stopped", "agent_type": agent_type, "total_turns": total_turns}
         if duration_seconds is not None:
             output["duration_seconds"] = duration_seconds
 
