@@ -11,6 +11,7 @@ import sys
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
+from contextlib import contextmanager
 from typing import Any
 
 LOG_FILE = Path.home() / ".claude" / "state" / "langfuse_hook.log"
@@ -438,3 +439,16 @@ def get_user_id() -> str:
         return user_id
 
     return "unknown"
+
+
+@contextmanager
+def propagate_session_attributes(session_id: str):
+    """Context manager that propagates session_id and user_id to Langfuse.
+
+    Wraps langfuse.propagate_attributes, resolving user_id via get_user_id().
+    Use this instead of calling propagate_attributes directly.
+    """
+    from langfuse import propagate_attributes
+    user_id = get_user_id()
+    with propagate_attributes(session_id=session_id, user_id=user_id):
+        yield

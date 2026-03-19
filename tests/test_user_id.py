@@ -131,3 +131,43 @@ def test_returns_non_empty_string_always():
                 result = get_user_id()
     assert isinstance(result, str)
     assert len(result) > 0
+
+
+from contextlib import contextmanager
+
+
+def test_propagate_session_attributes_passes_session_and_user_id():
+    """propagate_session_attributes calls propagate_attributes with session_id and user_id."""
+    from common import propagate_session_attributes
+
+    captured = {}
+
+    @contextmanager
+    def mock_propagate(**kwargs):
+        captured.update(kwargs)
+        yield
+
+    with patch.dict(os.environ, {"CC_LANGFUSE_USER_ID": "testuser"}):
+        with patch("langfuse.propagate_attributes", mock_propagate):
+            with propagate_session_attributes("sess-123"):
+                pass
+
+    assert captured == {"session_id": "sess-123", "user_id": "testuser"}
+
+
+def test_propagate_session_attributes_yields():
+    """propagate_session_attributes yields so body executes."""
+    from common import propagate_session_attributes
+
+    executed = []
+
+    @contextmanager
+    def mock_propagate(**kwargs):
+        yield
+
+    with patch("langfuse.propagate_attributes", mock_propagate):
+        with patch.dict(os.environ, {"CC_LANGFUSE_USER_ID": "u"}):
+            with propagate_session_attributes("sess-456"):
+                executed.append(True)
+
+    assert executed == [True]
