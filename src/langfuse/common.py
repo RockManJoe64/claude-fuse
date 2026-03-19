@@ -6,6 +6,7 @@ import json
 import os
 import platform
 import signal
+import subprocess
 import sys
 import threading
 from datetime import datetime, timezone
@@ -379,3 +380,61 @@ def merge_assistant_parts(parts: list) -> dict:
         result["content"] = merged_content
 
     return result
+
+
+def get_user_id() -> str:
+    """Resolve user identity for Langfuse tracking.
+
+    Priority order:
+    1. CC_LANGFUSE_USER_ID env var
+    2. LANGFUSE_USER_ID env var
+    3. git config user.email
+    4. git config user.name
+    5. os.getlogin()
+    6. USERNAME or USER env var
+    7. "unknown"
+    """
+    # 1. Explicit env vars
+    user_id = os.environ.get("CC_LANGFUSE_USER_ID", "").strip()
+    if user_id:
+        return user_id
+
+    user_id = os.environ.get("LANGFUSE_USER_ID", "").strip()
+    if user_id:
+        return user_id
+
+    # 2. Git config
+    try:
+        result = subprocess.run(
+            ["git", "config", "user.email"],
+            capture_output=True, text=True, timeout=2
+        )
+        if result.returncode == 0:
+            user_id = result.stdout.strip()
+            if user_id:
+                return user_id
+
+        result = subprocess.run(
+            ["git", "config", "user.name"],
+            capture_output=True, text=True, timeout=2
+        )
+        if result.returncode == 0:
+            user_id = result.stdout.strip()
+            if user_id:
+                return user_id
+    except Exception:
+        pass
+
+    # 3. OS username
+    try:
+        user_id = os.getlogin()
+        if user_id:
+            return user_id
+    except OSError:
+        pass
+
+    user_id = os.environ.get("USERNAME") or os.environ.get("USER") or ""
+    if user_id:
+        return user_id
+
+    return "unknown"
