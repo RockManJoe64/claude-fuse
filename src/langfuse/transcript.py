@@ -8,8 +8,8 @@ from common import (
     merge_assistant_parts,
     debug,
     log,
+    propagate_session_attributes,
 )
-from langfuse import propagate_attributes
 
 
 def parse_transcript_into_turns(messages: list) -> list[tuple[dict, list, list]]:
@@ -279,7 +279,7 @@ def create_trace(langfuse, session_id, turn_num, user_msg, assistant_msgs, tool_
 
         # Create trace with comprehensive error handling for Langfuse API calls
         try:
-            with propagate_attributes(session_id=session_id):
+            with propagate_session_attributes(session_id):
                 try:
                     with langfuse.start_as_current_span(
                         name=turn_name,
