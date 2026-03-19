@@ -3,7 +3,8 @@
     "TRACE_TO_LANGFUSE": "true",
     "LANGFUSE_PUBLIC_KEY": "pk-lf-your-public-key-here",
     "LANGFUSE_SECRET_KEY": "sk-lf-your-secret-key-here",
-    "LANGFUSE_HOST": "https://cloud.langfuse.com"
+    "LANGFUSE_HOST": "https://cloud.langfuse.com",
+    "CC_LANGFUSE_USER_ID": ""
   },
   "hooks": {
     "SessionStart": [

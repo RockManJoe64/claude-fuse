@@ -248,6 +248,7 @@ Set these in your `.claude/settings.json` or `.claude/settings.local.json`:
 - **LANGFUSE_SECRET_KEY** (required): Your Langfuse secret API key
 - **LANGFUSE_HOST** (optional): Langfuse server URL (defaults to `https://cloud.langfuse.com`)
 - **CC_LANGFUSE_DEBUG** (optional): Set to `"true"` to enable debug logging
+- **CC_LANGFUSE_USER_ID** (optional): Explicit user identifier sent to Langfuse for per-user analytics. If not set, auto-detected via: `LANGFUSE_USER_ID` env var → git config email → git config name → OS username → `"unknown"`.
 
 You can also use the `CC_LANGFUSE_*` prefixed versions of the keys:
 - `CC_LANGFUSE_PUBLIC_KEY`
