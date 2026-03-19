@@ -63,7 +63,19 @@ def propagate_session_attributes(session_id: str):
 - Import `propagate_session_attributes` from `common` instead of `propagate_attributes` from `langfuse`
 - Replace `propagate_attributes(session_id=session_id)` with `propagate_session_attributes(session_id)` inside `create_trace`
 
-All subagent hooks (`langfuse_subagent_stop_hook.py`) already flow through `create_trace`, so they inherit the change automatically. The `langfuse_session_end_hook.py` and `langfuse_subagent_start_hook.py` do not call `propagate_attributes` directly — they will be reviewed and updated if needed.
+### Changed: `langfuse_session_end_hook.py`
+
+- Import `propagate_session_attributes` from `common` instead of `propagate_attributes` from `langfuse`
+- Replace `propagate_attributes(session_id=session_id)` with `propagate_session_attributes(session_id)`
+
+### Changed: `langfuse_subagent_start_hook.py`
+
+- Import `propagate_session_attributes` from `common` instead of `propagate_attributes` from `langfuse`
+- Replace `propagate_attributes(session_id=session_id)` with `propagate_session_attributes(session_id)`
+
+### Changed: `langfuse_subagent_stop_hook.py`
+
+- Remove unused `from langfuse import propagate_attributes` import (this file delegates to `create_trace` in `transcript.py` which handles propagation)
 
 ## Configuration
 
@@ -90,7 +102,8 @@ Add to README "Environment Variables" section:
 | `src/langfuse/common.py` | Add `get_user_id()` and `propagate_session_attributes()` |
 | `src/langfuse/langfuse_session_start_hook.py` | Use `propagate_session_attributes` |
 | `src/langfuse/transcript.py` | Use `propagate_session_attributes` |
-| `src/langfuse/langfuse_session_end_hook.py` | Review and update if `propagate_attributes` is used |
-| `src/langfuse/langfuse_subagent_start_hook.py` | Review and update if `propagate_attributes` is used |
+| `src/langfuse/langfuse_session_end_hook.py` | Use `propagate_session_attributes` |
+| `src/langfuse/langfuse_subagent_start_hook.py` | Use `propagate_session_attributes` |
+| `src/langfuse/langfuse_subagent_stop_hook.py` | Remove unused `propagate_attributes` import |
 | `settings.example.json` | Add `CC_LANGFUSE_USER_ID` env var (optional) |
 | `README.md` | Document `CC_LANGFUSE_USER_ID` and fallback chain |
