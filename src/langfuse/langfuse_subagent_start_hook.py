@@ -15,8 +15,8 @@ from common import (
     debug,
     load_state,
     save_state,
+    propagate_session_attributes,
 )
-from langfuse import propagate_attributes
 
 
 def main():
@@ -50,7 +50,7 @@ def main():
     try:
         # Wrap propagate_attributes in try/except for specific error handling
         try:
-            with propagate_attributes(session_id=session_id):
+            with propagate_session_attributes(session_id):
                 # Wrap start_as_current_span with timeout handling
                 try:
                     with langfuse.start_as_current_span(

@@ -17,10 +17,9 @@ from common import (
     debug,
     load_state,
     save_state,
+    propagate_session_attributes,
 )
 from transcript import create_trace, parse_transcript_into_turns
-
-from langfuse import propagate_attributes
 
 
 def main() -> None:
@@ -151,7 +150,7 @@ def main() -> None:
             output["duration_seconds"] = duration_seconds
 
         try:
-            with propagate_attributes(session_id=session_id):
+            with propagate_session_attributes(session_id):
                 with langfuse.start_as_current_span(
                     name=f"Subagent Stop: {agent_type}",
                     input={"agent_id": agent_id, "agent_type": agent_type},

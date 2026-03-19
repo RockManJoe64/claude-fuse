@@ -16,8 +16,8 @@ from common import (
     debug,
     load_state,
     save_state,
+    propagate_session_attributes,
 )
-from langfuse import propagate_attributes
 
 
 def main() -> None:
@@ -72,7 +72,7 @@ def main() -> None:
 
         # Wrap Langfuse operations with timeout and error handling
         try:
-            with propagate_attributes(session_id=session_id):
+            with propagate_session_attributes(session_id):
                 with langfuse.start_as_current_span(
                     name="Session End",
                     input={"reason": reason},
