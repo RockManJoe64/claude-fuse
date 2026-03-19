@@ -75,7 +75,8 @@ def propagate_session_attributes(session_id: str):
 
 ### Changed: `langfuse_subagent_stop_hook.py`
 
-- Remove unused `from langfuse import propagate_attributes` import (this file delegates to `create_trace` in `transcript.py` which handles propagation)
+- Import `propagate_session_attributes` from `common` instead of `propagate_attributes` from `langfuse`
+- Replace `propagate_attributes(session_id=session_id)` at line 154 with `propagate_session_attributes(session_id)` (this file creates its own lifecycle span in addition to delegating to `create_trace`)
 
 ## Configuration
 
@@ -104,6 +105,6 @@ Add to README "Environment Variables" section:
 | `src/langfuse/transcript.py` | Use `propagate_session_attributes` |
 | `src/langfuse/langfuse_session_end_hook.py` | Use `propagate_session_attributes` |
 | `src/langfuse/langfuse_subagent_start_hook.py` | Use `propagate_session_attributes` |
-| `src/langfuse/langfuse_subagent_stop_hook.py` | Remove unused `propagate_attributes` import |
+| `src/langfuse/langfuse_subagent_stop_hook.py` | Use `propagate_session_attributes` |
 | `settings.example.json` | Add `CC_LANGFUSE_USER_ID` env var (optional) |
 | `README.md` | Document `CC_LANGFUSE_USER_ID` and fallback chain |
