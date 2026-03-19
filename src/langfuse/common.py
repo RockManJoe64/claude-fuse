@@ -391,7 +391,7 @@ def get_user_id() -> str:
     3. git config user.email
     4. git config user.name
     5. os.getlogin()
-    6. USERNAME or USER env var
+    6. USERNAME (Windows) or USER (Unix) env var — USERNAME takes precedence
     7. "unknown"
     """
     # 1. Explicit env vars
@@ -430,7 +430,7 @@ def get_user_id() -> str:
         user_id = os.getlogin()
         if user_id:
             return user_id
-    except OSError:
+    except Exception:
         pass
 
     user_id = os.environ.get("USERNAME") or os.environ.get("USER") or ""

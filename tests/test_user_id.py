@@ -53,9 +53,13 @@ def test_git_name_fallback_when_email_empty():
         return result
 
     with patch.dict(os.environ, {}, clear=True):
-        with patch("subprocess.run", side_effect=side_effect):
+        with patch("subprocess.run", side_effect=side_effect) as mock_sub:
             result = get_user_id()
     assert result == "Dev Name"
+    mock_sub.assert_any_call(
+        ["git", "config", "user.name"],
+        capture_output=True, text=True, timeout=2
+    )
 
 
 def test_os_getlogin_fallback():
