@@ -34,14 +34,14 @@ def main():
         log("ERROR", "No session_id provided in hook input")
         sys.exit(1)
 
-    # Validate required fields for subagent tracking
+    # Use fallback defaults for missing subagent fields
     if not agent_id:
-        log("ERROR", "No agent_id provided in hook input")
-        sys.exit(1)
+        log("WARNING", "No agent_id provided in hook input, using fallback")
+        agent_id = "unknown-agent"
 
     if not agent_type:
-        log("ERROR", "No agent_type provided in hook input")
-        sys.exit(1)
+        log("WARNING", "No agent_type provided in hook input, using fallback")
+        agent_type = "unknown"
 
     langfuse = create_langfuse_client()
     if not langfuse:
@@ -51,9 +51,9 @@ def main():
         # Wrap propagate_attributes in try/except for specific error handling
         try:
             with propagate_session_attributes(session_id):
-                # Wrap start_as_current_span with timeout handling
+                # Wrap start_as_current_observation with timeout handling
                 try:
-                    with langfuse.start_as_current_span(
+                    with langfuse.start_as_current_observation(
                         name=f"Subagent Start: {agent_type}",
                         input={"agent_id": agent_id, "agent_type": agent_type},
                         metadata={

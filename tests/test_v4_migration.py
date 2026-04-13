@@ -105,3 +105,73 @@ def test_stop_hook_flush_no_timeout_arg():
     # flush() and shutdown() should be called with no positional or keyword args
     mock_lf.flush.assert_called_once_with()
     mock_lf.shutdown.assert_called_once_with()
+
+
+def test_subagent_start_missing_agent_type_uses_fallback():
+    """Subagent start hook uses 'unknown' fallback when agent_type is missing."""
+    from langfuse_subagent_start_hook import main
+
+    mock_lf, mock_span = _make_mock_langfuse()
+
+    hook_input = {
+        "session_id": "test-session",
+        "transcript_path": "/test/transcript.jsonl",
+        "cwd": "/test",
+        "hook_event_name": "SubagentStart",
+        "agent_id": "agent-123",
+        # agent_type intentionally missing
+    }
+
+    @contextmanager
+    def mock_propagate(session_id):
+        yield
+
+    with patch("langfuse_subagent_start_hook.read_hook_input", return_value=hook_input), \
+         patch("langfuse_subagent_start_hook.is_tracing_enabled", return_value=True), \
+         patch("langfuse_subagent_start_hook.create_langfuse_client", return_value=mock_lf), \
+         patch("langfuse_subagent_start_hook.propagate_session_attributes", mock_propagate), \
+         patch("langfuse_subagent_start_hook.load_state", return_value={}), \
+         patch("langfuse_subagent_start_hook.save_state"), \
+         pytest.raises(SystemExit) as exc_info:
+        main()
+
+    # Should exit 0 (success with fallback), not exit 1 (hard failure)
+    assert exc_info.value.code == 0
+    # Should have called start_as_current_observation with "unknown" as agent_type
+    call_kwargs = mock_lf.start_as_current_observation.call_args
+    assert "unknown" in call_kwargs.kwargs["name"]
+
+
+def test_subagent_start_missing_agent_id_uses_fallback():
+    """Subagent start hook uses 'unknown-agent' fallback when agent_id is missing."""
+    from langfuse_subagent_start_hook import main
+
+    mock_lf, mock_span = _make_mock_langfuse()
+
+    hook_input = {
+        "session_id": "test-session",
+        "transcript_path": "/test/transcript.jsonl",
+        "cwd": "/test",
+        "hook_event_name": "SubagentStart",
+        "agent_type": "Explore",
+        # agent_id intentionally missing
+    }
+
+    @contextmanager
+    def mock_propagate(session_id):
+        yield
+
+    with patch("langfuse_subagent_start_hook.read_hook_input", return_value=hook_input), \
+         patch("langfuse_subagent_start_hook.is_tracing_enabled", return_value=True), \
+         patch("langfuse_subagent_start_hook.create_langfuse_client", return_value=mock_lf), \
+         patch("langfuse_subagent_start_hook.propagate_session_attributes", mock_propagate), \
+         patch("langfuse_subagent_start_hook.load_state", return_value={}), \
+         patch("langfuse_subagent_start_hook.save_state"), \
+         pytest.raises(SystemExit) as exc_info:
+        main()
+
+    # Should exit 0 (success with fallback), not exit 1 (hard failure)
+    assert exc_info.value.code == 0
+    # Should have called start_as_current_observation with the input containing "unknown-agent"
+    call_kwargs = mock_lf.start_as_current_observation.call_args
+    assert call_kwargs.kwargs["input"]["agent_id"] == "unknown-agent"
