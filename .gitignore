@@ -208,3 +208,6 @@ __marimo__/
 
 # Agentic Coding
 settings.local.json
+
+# Git worktrees
+.worktrees/

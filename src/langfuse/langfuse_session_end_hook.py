@@ -73,7 +73,7 @@ def main() -> None:
         # Wrap Langfuse operations with timeout and error handling
         try:
             with propagate_session_attributes(session_id):
-                with langfuse.start_as_current_span(
+                with langfuse.start_as_current_observation(
                     name="Session End",
                     input={"reason": reason},
                     metadata={

@@ -73,7 +73,7 @@ def _create_span_with_timeout(
     """
     try:
         with propagate_session_attributes(session_id):
-            with langfuse.start_as_current_span(
+            with langfuse.start_as_current_observation(
                 name="Session Start",
                 input={"source": source, "cwd": cwd},
                 metadata={

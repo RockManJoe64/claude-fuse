@@ -37,14 +37,14 @@ def main() -> None:
         log("ERROR", "No session_id in hook input")
         sys.exit(1)
 
-    # Validate agent_type and agent_id (high priority fix)
+    # Use fallback defaults for missing subagent fields
     if not agent_type or not isinstance(agent_type, str) or agent_type.strip() == "":
-        log("ERROR", "Invalid or missing agent_type in hook input")
-        sys.exit(1)
+        log("WARNING", "Invalid or missing agent_type in hook input, using fallback")
+        agent_type = "unknown"
 
     if not agent_id or not isinstance(agent_id, str) or agent_id.strip() == "":
-        log("ERROR", "Invalid or missing agent_id in hook input")
-        sys.exit(1)
+        log("WARNING", "Invalid or missing agent_id in hook input, using fallback")
+        agent_id = "unknown-agent"
 
     langfuse = create_langfuse_client()
     if not langfuse:
@@ -151,7 +151,7 @@ def main() -> None:
 
         try:
             with propagate_session_attributes(session_id):
-                with langfuse.start_as_current_span(
+                with langfuse.start_as_current_observation(
                     name=f"Subagent Stop: {agent_type}",
                     input={"agent_id": agent_id, "agent_type": agent_type},
                     metadata={
@@ -168,7 +168,7 @@ def main() -> None:
 
         # Flush with timeout handling (critical fix)
         try:
-            langfuse.flush(timeout=10)
+            langfuse.flush()
         except Exception as flush_err:
             log("ERROR", f"Failed to flush Langfuse: {flush_err}")
             traceback.print_exc()
