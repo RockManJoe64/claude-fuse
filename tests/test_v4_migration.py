@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from contextlib import contextmanager
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src" / "langfuse"))
 
@@ -68,3 +69,39 @@ def test_session_start_calls_start_as_current_observation():
     assert result is True
     mock_lf.start_as_current_observation.assert_called_once()
     assert not hasattr(mock_lf, 'start_as_current_span') or not mock_lf.start_as_current_span.called
+
+
+def test_stop_hook_flush_no_timeout_arg():
+    """Stop hook calls flush() and shutdown() with no arguments (v4 API)."""
+    from langfuse_stop_hook import main
+
+    mock_lf = MagicMock()
+
+    hook_input = {
+        "session_id": "test-session",
+        "transcript_path": "/test/transcript.jsonl",
+        "cwd": "/test",
+        "hook_event_name": "Stop",
+    }
+
+    # Mock Path.resolve() and is_file() to make transcript file validation pass
+    # Mock process_transcript to avoid actual file processing
+    with patch("langfuse_stop_hook.read_hook_input", return_value=hook_input), \
+         patch("langfuse_stop_hook.is_tracing_enabled", return_value=True), \
+         patch("langfuse_stop_hook.create_langfuse_client", return_value=mock_lf), \
+         patch("langfuse_stop_hook.load_state", return_value={}), \
+         patch("langfuse_stop_hook.save_state"), \
+         patch("langfuse_stop_hook.Path") as mock_path_class, \
+         patch("langfuse_stop_hook.process_transcript", return_value=0), \
+         pytest.raises(SystemExit):
+        # Set up Path mock to pass file validation
+        mock_path_instance = MagicMock()
+        mock_path_instance.resolve.return_value = mock_path_instance
+        mock_path_instance.is_file.return_value = True
+        mock_path_class.return_value = mock_path_instance
+
+        main()
+
+    # flush() and shutdown() should be called with no positional or keyword args
+    mock_lf.flush.assert_called_once_with()
+    mock_lf.shutdown.assert_called_once_with()

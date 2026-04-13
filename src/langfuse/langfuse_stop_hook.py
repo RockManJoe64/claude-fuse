@@ -188,7 +188,7 @@ def main():
         # Cleanup: flush and shutdown Langfuse with timeout handling
         try:
             debug("Attempting to flush Langfuse")
-            langfuse.flush(timeout=30)
+            langfuse.flush()
             debug("Langfuse flushed successfully")
         except Exception as e:
             log("WARN", f"Failed to flush Langfuse: {e}")
@@ -196,7 +196,7 @@ def main():
 
         try:
             debug("Attempting to shutdown Langfuse")
-            langfuse.shutdown(timeout=30)
+            langfuse.shutdown()
             debug("Langfuse shutdown successfully")
         except Exception as e:
             log("WARN", f"Failed to shutdown Langfuse gracefully: {e}")
