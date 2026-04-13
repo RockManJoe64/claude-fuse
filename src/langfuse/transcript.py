@@ -276,7 +276,10 @@ def create_trace(langfuse, session_id, turn_num, user_msg, assistant_msgs, tool_
                 return sanitize_metadata(base)
             except Exception as e:
                 log("ERROR", f"create_trace: error building metadata: {e}")
-                return sanitize_metadata(base) if isinstance(base, dict) else {}
+                try:
+                    return sanitize_metadata(base) if isinstance(base, dict) else {}
+                except Exception:
+                    return {}
 
         # Create trace with comprehensive error handling for Langfuse API calls
         try:
