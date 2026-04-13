@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -51,33 +50,21 @@ def test_session_start_calls_start_as_current_observation():
     """Session start hook uses start_as_current_observation (v4 API), not start_as_current_span."""
     from langfuse_session_start_hook import _create_span_with_timeout
 
-    mock_lf = MagicMock()
-    mock_span = MagicMock()
-
-    # Set up the context manager properly
-    mock_ctx = MagicMock()
-    mock_ctx.__enter__ = MagicMock(return_value=mock_span)
-    mock_ctx.__exit__ = MagicMock(return_value=False)
-    mock_lf.start_as_current_observation.return_value = mock_ctx
+    mock_lf, mock_span = _make_mock_langfuse()
 
     @contextmanager
-    def mock_propagate_ctx(**kwargs):
+    def mock_propagate(session_id):
         yield
 
-    # Patch both langfuse.propagate_attributes (used by common.propagate_session_attributes)
-    # and the propagate_session_attributes itself in the hook module
-    with patch("langfuse.propagate_attributes", mock_propagate_ctx):
-        with patch("common.get_user_id", return_value="testuser"):
-            result = _create_span_with_timeout(
-                mock_lf,
-                session_id="test-session",
-                source="startup",
-                cwd="/test",
-                model="claude",
-            )
+    with patch("langfuse_session_start_hook.propagate_session_attributes", mock_propagate):
+        result = _create_span_with_timeout(
+            mock_lf,
+            session_id="test-session",
+            source="startup",
+            cwd="/test",
+            model="claude",
+        )
 
     assert result is True
     mock_lf.start_as_current_observation.assert_called_once()
-    # Verify start_as_current_span is not called (if it exists)
-    if hasattr(mock_lf, 'start_as_current_span'):
-        assert not mock_lf.start_as_current_span.called
+    assert not hasattr(mock_lf, 'start_as_current_span') or not mock_lf.start_as_current_span.called
