@@ -452,3 +452,12 @@ def propagate_session_attributes(session_id: str):
     user_id = get_user_id()
     with propagate_attributes(session_id=session_id, user_id=user_id):
         yield
+
+
+def sanitize_metadata(meta: dict) -> dict[str, str]:
+    """Coerce metadata values to str for Langfuse v4 compatibility.
+
+    Langfuse v4 requires metadata to be dict[str, str] with values
+    limited to 200 characters. Non-string values are converted via str().
+    """
+    return {str(k): str(v)[:200] for k, v in meta.items()}
