@@ -9,6 +9,7 @@ from common import (
     debug,
     log,
     propagate_session_attributes,
+    sanitize_metadata,
 )
 
 
@@ -271,17 +272,17 @@ def create_trace(langfuse, session_id, turn_num, user_msg, assistant_msgs, tool_
                 if not isinstance(base, dict):
                     base = {}
                 if extra_metadata and isinstance(extra_metadata, dict):
-                    return {**base, **extra_metadata}
-                return base
+                    return sanitize_metadata({**base, **extra_metadata})
+                return sanitize_metadata(base)
             except Exception as e:
                 log("ERROR", f"create_trace: error building metadata: {e}")
-                return base if isinstance(base, dict) else {}
+                return sanitize_metadata(base) if isinstance(base, dict) else {}
 
         # Create trace with comprehensive error handling for Langfuse API calls
         try:
             with propagate_session_attributes(session_id):
                 try:
-                    with langfuse.start_as_current_span(
+                    with langfuse.start_as_current_observation(
                         name=turn_name,
                         input={"role": "user", "content": user_text},
                         metadata=build_metadata({"source": "claude-code", "turn_number": turn_num}),
@@ -317,7 +318,7 @@ def create_trace(langfuse, session_id, turn_num, user_msg, assistant_msgs, tool_
                                     tool_name = tool_call.get("name", "unknown")
                                     tool_span_name = f"{name_prefix} Tool: {tool_name}" if name_prefix else f"Tool: {tool_name}"
 
-                                    with langfuse.start_as_current_span(
+                                    with langfuse.start_as_current_observation(
                                         name=tool_span_name,
                                         input=tool_call.get("input", {}),
                                         metadata=build_metadata({
