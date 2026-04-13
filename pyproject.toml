@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Claude Code hooks for measuring telemetry and usage with Langfuse"
 requires-python = ">=3.13"
 dependencies = [
-    "langfuse>=3.14.1",
+    "langfuse>=4.0,<5.0",
 ]
 
 [dependency-groups]
