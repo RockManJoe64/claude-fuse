@@ -1,3 +1,5 @@
+<img src="docs/claude-fuse-logo.jpeg" width="120" height="120" alt="claude-fuse logo" />
+
 # claude-fuse
 
 A comprehensive set of Claude Code hooks for capturing telemetry, usage metrics, and conversation traces using Langfuse. These hooks provide complete observability into your Claude Code sessions, including session lifecycle, conversation turns, tool usage, and subagent execution.
@@ -149,6 +151,7 @@ Handles transcript parsing and trace creation:
 - [uv](https://github.com/astral-sh/uv) package manager
 - A [Langfuse](https://langfuse.com/) account (free tier available)
 - Claude Code CLI
+- **Langfuse Python SDK `>=4.0,<5.0`** — these hooks require the v4 SDK. The `pyproject.toml` pins this automatically; if you install the scripts manually ensure you are on v4 (`pip show langfuse` or `uv pip show langfuse` to check).
 
 ### Installation
 
