@@ -13,8 +13,7 @@ A comprehensive set of Claude Code hooks for capturing telemetry, usage metrics,
   - [Getting Langfuse API Keys](#getting-langfuse-api-keys)
   - [Configuration Options](#configuration-options)
 - [Viewing Your Data in Langfuse](#viewing-your-data-in-langfuse)
-- [Architecture](hooks/README.md#architecture)
-- [Hooks Reference](hooks/README.md)
+
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
@@ -163,10 +162,6 @@ Once configured, your Claude Code sessions will automatically appear in your Lan
 - Use session_id to group related traces
 - Filter by `event: "subagent_start"` to find Task agent usage
 - Search by tool names to analyze specific tool patterns
-
-## Architecture
-
-For the full architecture diagram, hook scripts, and shared module documentation, see the [Hooks Reference](hooks/README.md).
 
 ## Troubleshooting
 
