@@ -2,5 +2,7 @@
   "name": "claude-fuse",
   "version": "0.1.0",
   "description": "Claude Code hooks for measuring telemetry and usage with Langfuse",
-  "author": "RockManJoe64"
+  "author": {
+    "name": "RockManJoe64"
+  }
 }

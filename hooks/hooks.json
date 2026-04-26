@@ -1,5 +1,4 @@
 {
-  "description": "Langfuse telemetry hooks for Claude Code",
   "hooks": {
     "SessionStart": [
       {
