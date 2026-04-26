@@ -192,18 +192,9 @@ def _shutdown_langfuse_safely(langfuse: Optional[object]) -> None:
 
 def main():
     """Main entry point for session start hook."""
-    # --- Diagnostic logging (remove after troubleshooting) ---
-    import os
-    log("DIAG", f"session_start_hook.py invoked")
-    log("DIAG", f"TRACE_TO_LANGFUSE={os.environ.get('TRACE_TO_LANGFUSE', '<unset>')}")
-    log("DIAG", f"LANGFUSE_PUBLIC_KEY={os.environ.get('LANGFUSE_PUBLIC_KEY', '<unset>')[:10]}...")
-    log("DIAG", f"LANGFUSE_HOST={os.environ.get('LANGFUSE_HOST', '<unset>')}")
-    # --- End diagnostic logging ---
-
     hook_input = read_hook_input()
 
     if not is_tracing_enabled():
-        log("DIAG", "Tracing disabled, exiting")
         sys.exit(0)
 
     # Validate hook input fields
