@@ -13,7 +13,7 @@ A comprehensive set of Claude Code hooks for capturing telemetry, usage metrics,
   - [Getting Langfuse API Keys](#getting-langfuse-api-keys)
   - [Configuration Options](#configuration-options)
 - [Viewing Your Data in Langfuse](#viewing-your-data-in-langfuse)
-- [Architecture](#architecture)
+- [Architecture](hooks/README.md#architecture)
 - [Hooks Reference](hooks/README.md)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
@@ -166,23 +166,7 @@ Once configured, your Claude Code sessions will automatically appear in your Lan
 
 ## Architecture
 
-```
-Claude Code Session
-├── SessionStart Hook → Langfuse "Session Start" span
-├── Stop Hook (after each turn)
-│   ├── Parse transcript
-│   └── Create traces with:
-│       ├── User input
-│       ├── Assistant response
-│       └── Tool calls (with inputs/outputs)
-├── SubagentStart Hook → Langfuse "Subagent Start" span
-├── SubagentStop Hook
-│   ├── Parse subagent transcript
-│   └── Create prefixed traces: [AgentType] Turn N
-└── SessionEnd Hook → Langfuse "Session End" span
-```
-
-For details on each hook script and shared modules, see the [Hooks Reference](hooks/README.md).
+For the full architecture diagram, hook scripts, and shared module documentation, see the [Hooks Reference](hooks/README.md).
 
 ## Troubleshooting
 

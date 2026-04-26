@@ -2,6 +2,24 @@
 
 Documentation for the individual hook scripts and shared infrastructure in this directory.
 
+## Architecture
+
+```
+Claude Code Session
+├── SessionStart Hook → Langfuse "Session Start" span
+├── Stop Hook (after each turn)
+│   ├── Parse transcript
+│   └── Create traces with:
+│       ├── User input
+│       ├── Assistant response
+│       └── Tool calls (with inputs/outputs)
+├── SubagentStart Hook → Langfuse "Subagent Start" span
+├── SubagentStop Hook
+│   ├── Parse subagent transcript
+│   └── Create prefixed traces: [AgentType] Turn N
+└── SessionEnd Hook → Langfuse "Session End" span
+```
+
 ## Claude Code Hooks
 
 ### 1. SessionStart Hook
