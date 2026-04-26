@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "langfuse>=4.0,<5.0",
+# ]
+# ///
 """Tracks subagent stop events in Langfuse."""
 
 import json
@@ -6,8 +12,6 @@ import sys
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from common import (
     read_hook_input,
