@@ -1,9 +1,13 @@
 {
+  "name": "claude-fuse",
+  "owner": {
+    "name": "RockManJoe64"
+  },
   "plugins": [
     {
       "name": "claude-fuse",
       "description": "Claude Code hooks for measuring telemetry and usage with Langfuse",
-      "path": "."
+      "source": "."
     }
   ]
 }
