@@ -24,7 +24,7 @@ There is no build or lint step — this is a pure Python hooks project.
 
 This project provides Claude Code lifecycle hooks that send telemetry to [Langfuse](https://langfuse.com/). Each hook is a standalone Python script invoked by Claude Code via stdin/stdout.
 
-**Hook scripts** (`src/langfuse/`):
+**Hook scripts** (`hooks/`):
 - `langfuse_session_start_hook.py` — fires on `SessionStart`, creates a span in Langfuse
 - `langfuse_session_end_hook.py` — fires on `SessionEnd`, records duration and turn count
 - `langfuse_stop_hook.py` — fires after every Claude turn (`Stop`), parses the transcript and creates per-turn traces
@@ -32,7 +32,7 @@ This project provides Claude Code lifecycle hooks that send telemetry to [Langfu
 
 **Shared modules**:
 - `common.py` — all shared infrastructure: state load/save (`~/.claude/state/langfuse_state.json`), logging (`~/.claude/state/langfuse_hook.log`), stdin JSON parsing, Langfuse client init, message content helpers, `get_user_id()`, and the `propagate_session_attributes()` context manager
-- `transcript.py` — transcript parsing (`parse_transcript_into_turns`) and trace creation (`create_trace`); imports from `common` using a relative import (no package, scripts run directly with `uv run`)
+- `transcript.py` — transcript parsing (`parse_transcript_into_turns`) and trace creation (`create_trace`); imports from `common` using a relative import (scripts are standalone, run directly with `uv run`)
 
 **Data flow**: Claude Code passes a JSON blob via stdin to each hook (fields: `session_id`, `transcript_path`, `cwd`, `hook_event_name`, plus event-specific fields). The stop hook streams the transcript file, groups messages into turns, and sends each turn as a Langfuse trace with nested generation and tool spans.
 
@@ -42,8 +42,8 @@ This project provides Claude Code lifecycle hooks that send telemetry to [Langfu
 
 Hooks only run when `TRACE_TO_LANGFUSE=true` is set. Required env vars: `LANGFUSE_PUBLIC_KEY` (or `CC_LANGFUSE_PUBLIC_KEY`) and `LANGFUSE_SECRET_KEY` (or `CC_LANGFUSE_SECRET_KEY`). Optional: `CC_LANGFUSE_DEBUG=true` enables verbose logging, `CC_LANGFUSE_USER_ID` sets an explicit user identity.
 
-Hook commands are registered in `.claude/settings.json` or `.claude/settings.local.json` (see `settings.example.json`).
+For plugin users, hooks are configured automatically via `hooks/hooks.json`. For manual setup, hook commands are registered in `.claude/settings.json` or `.claude/settings.local.json` (see `settings.example.json`).
 
 ## Tests
 
-Tests are in `tests/` and use `pytest` with `unittest.mock`. Test files add `src/langfuse/` to `sys.path` directly — there is no package install. Tests patch `langfuse.propagate_attributes` and `subprocess.run` to avoid real network/git calls.
+Tests are in `tests/` and use `pytest` with `unittest.mock`. Test files add `hooks/` to `sys.path` directly — there is no package install. Tests patch `langfuse.propagate_attributes` and `subprocess.run` to avoid real network/git calls.

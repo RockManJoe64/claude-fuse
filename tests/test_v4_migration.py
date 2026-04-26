@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from contextlib import contextmanager
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src" / "langfuse"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
 
 from common import sanitize_metadata
 

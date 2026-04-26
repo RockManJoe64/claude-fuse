@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "langfuse>=4.0,<5.0",
+#   "requests",
+# ]
+# ///
 """Tracks session start events in Langfuse."""
 
 import sys
 import traceback
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 import socket
 import requests
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from common import (
     read_hook_input,

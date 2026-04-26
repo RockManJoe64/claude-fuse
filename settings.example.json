@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run src/langfuse/langfuse_session_start_hook.py"
+            "command": "uv run hooks/langfuse_session_start_hook.py"
           }
         ]
       }
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run src/langfuse/langfuse_stop_hook.py"
+            "command": "uv run hooks/langfuse_stop_hook.py"
           }
         ]
       }
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run src/langfuse/langfuse_subagent_start_hook.py"
+            "command": "uv run hooks/langfuse_subagent_start_hook.py"
           }
         ]
       }
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run src/langfuse/langfuse_subagent_stop_hook.py"
+            "command": "uv run hooks/langfuse_subagent_stop_hook.py"
           }
         ]
       }
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run src/langfuse/langfuse_session_end_hook.py"
+            "command": "uv run hooks/langfuse_session_end_hook.py"
           }
         ]
       }

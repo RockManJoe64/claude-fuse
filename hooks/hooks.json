@@ -1,0 +1,59 @@
+{
+  "description": "Langfuse telemetry hooks for Claude Code",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check_uv.sh"
+          },
+          {
+            "type": "command",
+            "command": "uv run --quiet ${CLAUDE_PLUGIN_ROOT}/hooks/langfuse_session_start_hook.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet ${CLAUDE_PLUGIN_ROOT}/hooks/langfuse_stop_hook.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet ${CLAUDE_PLUGIN_ROOT}/hooks/langfuse_subagent_start_hook.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet ${CLAUDE_PLUGIN_ROOT}/hooks/langfuse_subagent_stop_hook.py"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet ${CLAUDE_PLUGIN_ROOT}/hooks/langfuse_session_end_hook.py"
+          }
+        ]
+      }
+    ]
+  }
+}

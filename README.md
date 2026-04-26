@@ -20,7 +20,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 
 ### 1. SessionStart Hook
 
-**File**: `src/langfuse/langfuse_session_start_hook.py`
+**File**: `hooks/langfuse_session_start_hook.py`
 
 **Trigger**: Runs when a new Claude Code session starts.
 
@@ -38,7 +38,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 
 ### 2. SessionEnd Hook
 
-**File**: `src/langfuse/langfuse_session_end_hook.py`
+**File**: `hooks/langfuse_session_end_hook.py`
 
 **Trigger**: Runs when a Claude Code session ends.
 
@@ -57,7 +57,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 
 ### 3. Stop Hook
 
-**File**: `src/langfuse/langfuse_stop_hook.py`
+**File**: `hooks/langfuse_stop_hook.py`
 
 **Trigger**: Runs after each Claude response (after every turn).
 
@@ -84,7 +84,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 
 ### 4. SubagentStart Hook
 
-**File**: `src/langfuse/langfuse_subagent_start_hook.py`
+**File**: `hooks/langfuse_subagent_start_hook.py`
 
 **Trigger**: Runs when a Task agent (subagent) is launched.
 
@@ -101,7 +101,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 
 ### 5. SubagentStop Hook
 
-**File**: `src/langfuse/langfuse_subagent_stop_hook.py`
+**File**: `hooks/langfuse_subagent_stop_hook.py`
 
 **Trigger**: Runs when a Task agent completes.
 
@@ -147,86 +147,60 @@ Handles transcript parsing and trace creation:
 
 ### Prerequisites
 
-- Python 3.13 or higher
-- [uv](https://github.com/astral-sh/uv) package manager
+- [uv](https://github.com/astral-sh/uv) package manager (required)
+  - Unix: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  - Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - A [Langfuse](https://langfuse.com/) account (free tier available)
 - Claude Code CLI
-- **Langfuse Python SDK `>=4.0,<5.0`** — these hooks require the v4 SDK. The `pyproject.toml` pins this automatically; if you install the scripts manually ensure you are on v4 (`pip show langfuse` or `uv pip show langfuse` to check).
+
+> **Note:** Hooks only run in **trusted workspaces**. If hooks appear to be silently ignored, check your workspace trust settings.
 
 ### Installation
 
-This repository includes a `settings.example.json` file with all the necessary hook configurations and placeholder values for your Langfuse API keys. You can copy this file to get started quickly.
+#### Plugin Install (Recommended)
 
-#### Option 1: Use in a Specific Project
+Install claude-fuse as a Claude Code plugin — no manual configuration needed:
 
-1. Clone this repository into your project:
+1. Add the marketplace:
+   ```
+   /plugin marketplace add RockManJoe64/claude-fuse
+   ```
+
+2. Install the plugin:
+   ```
+   /plugin install claude-fuse@RockManJoe64/claude-fuse
+   ```
+
+3. Set your Langfuse environment variables. You can place these in your shell profile, `.claude/settings.local.json`, direnv, or wherever you manage env vars:
+   ```
+   LANGFUSE_PUBLIC_KEY=pk-lf-...
+   LANGFUSE_SECRET_KEY=sk-lf-...
+   LANGFUSE_HOST=https://cloud.langfuse.com
+   ```
+
+4. Start a new Claude Code session — hooks will activate automatically.
+
+#### Advanced: Manual Setup
+
+If you prefer to wire hooks manually (e.g., for customization or debugging):
+
+1. Clone this repository:
    ```bash
-   cd /path/to/your/project
-   git clone https://github.com/yourusername/claude-fuse.git
+   git clone https://github.com/RockManJoe64/claude-fuse.git
    cd claude-fuse
    ```
 
-2. Install dependencies using uv:
+2. Install dev dependencies:
    ```bash
    uv sync
    ```
 
-3. Copy the scripts to your project:
-   ```bash
-   cp -r src/langfuse /path/to/your/project/src/
-   ```
-
-4. Copy the example settings file to your project:
+3. Copy the example settings file to your project or user config:
    ```bash
    cp settings.example.json /path/to/your/project/.claude/settings.local.json
    ```
 
-5. Edit your project's `.claude/settings.local.json` and replace the placeholders with your actual Langfuse API keys:
-   - Replace `pk-lf-your-public-key-here` with your Langfuse public key
-   - Replace `sk-lf-your-secret-key-here` with your Langfuse secret key
-   - Update `LANGFUSE_HOST` if using US cloud (`https://us.cloud.langfuse.com`) or self-hosted instance
-
-#### Option 2: Global Installation (All Projects)
-
-1. Clone this repository to your Claude Code user directory:
-   ```bash
-   cd ~/.claude
-   git clone https://github.com/yourusername/claude-fuse.git
-   cd claude-fuse
-   ```
-
-2. Install dependencies:
-   ```bash
-   uv sync
-   ```
-
-3. Copy the scripts to your system:
-   ```bash
-   cp -r src/langfuse ~/.claude/hooks/langfuse
-   ```
-
-4. Copy the example settings file to your global settings:
-   ```bash
-   # If you don't have a global settings.json yet
-   cp settings.example.json ~/.claude/settings.json
-
-   # OR if you already have a settings.json, merge the contents manually
-   ```
-
-5. Edit your `~/.claude/settings.json`:
-   - Replace `pk-lf-your-public-key-here` with your Langfuse public key
-   - Replace `sk-lf-your-secret-key-here` with your Langfuse secret key
-   - Update `LANGFUSE_HOST` if using US cloud (`https://us.cloud.langfuse.com`) or self-hosted instance
-   - Update all hook command paths from `src/langfuse/` to `~/.claude/hooks/langfuse/`
-
-     For example, change:
-     ```
-     "command": "uv run src/langfuse/langfuse_session_start_hook.py"
-     ```
-     to:
-     ```
-     "command": "uv run ~/.claude/hooks/langfuse/langfuse_session_start_hook.py"
-     ```
+4. Edit the copied file and replace the placeholder API keys with your actual Langfuse credentials.
 
 ### Getting Langfuse API Keys
 

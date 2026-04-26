@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "langfuse>=4.0,<5.0",
+# ]
+# ///
 """
 Sends Claude Code traces to Langfuse after each response.
 """
@@ -8,8 +14,6 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from common import (
     read_hook_input, is_tracing_enabled, create_langfuse_client,
     log, debug, load_state, save_state,
