@@ -7,7 +7,10 @@
     {
       "name": "claude-fuse",
       "description": "Claude Code hooks for measuring telemetry and usage with Langfuse",
-      "source": "."
+      "source": {
+        "source": "github",
+        "repo": "RockManJoe64/claude-fuse"
+      }
     }
   ]
 }
