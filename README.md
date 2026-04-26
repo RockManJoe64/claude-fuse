@@ -159,26 +159,36 @@ Handles transcript parsing and trace creation:
 
 #### Plugin Install (Recommended)
 
-Install claude-fuse as a Claude Code plugin — no manual configuration needed:
+Install claude-fuse as a Claude Code plugin in three steps:
 
-1. Add the marketplace:
-   ```
-   /plugin marketplace add RockManJoe64/claude-fuse
-   ```
+**Step 1 — Add the marketplace and install:**
 
-2. Install the plugin:
-   ```
-   /plugin install claude-fuse@RockManJoe64/claude-fuse
-   ```
+```
+/plugin marketplace add RockManJoe64/claude-fuse
+/plugin install claude-fuse
+/reload-plugins
+```
 
-3. Set your Langfuse environment variables. You can place these in your shell profile, `.claude/settings.local.json`, direnv, or wherever you manage env vars:
-   ```
-   LANGFUSE_PUBLIC_KEY=pk-lf-...
-   LANGFUSE_SECRET_KEY=sk-lf-...
-   LANGFUSE_HOST=https://cloud.langfuse.com
-   ```
+**Step 2 — Set environment variables in `~/.claude/settings.json`:**
 
-4. Start a new Claude Code session — hooks will activate automatically.
+> **Important:** Environment variables must be placed in `~/.claude/settings.json` (not `settings.local.json`). Plugin hooks only inherit env vars from the user-level `settings.json`.
+
+Add an `env` block to your `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "TRACE_TO_LANGFUSE": "true",
+    "LANGFUSE_PUBLIC_KEY": "pk-lf-your-public-key",
+    "LANGFUSE_SECRET_KEY": "sk-lf-your-secret-key",
+    "LANGFUSE_HOST": "https://us.cloud.langfuse.com"
+  }
+}
+```
+
+Replace the key values with your actual Langfuse credentials (see [Getting Langfuse API Keys](#getting-langfuse-api-keys) below).
+
+**Step 3 — Start a new Claude Code session.** Hooks activate automatically. Check `~/.claude/state/langfuse_hook.log` to confirm they're running.
 
 #### Advanced: Manual Setup
 
@@ -218,19 +228,18 @@ If you prefer to wire hooks manually (e.g., for customization or debugging):
 
 #### Environment Variables
 
-Set these in your `.claude/settings.json` or `.claude/settings.local.json`:
+Set these in `~/.claude/settings.json` (the user-level settings file). Plugin hooks do **not** inherit from `settings.local.json`.
 
-- **TRACE_TO_LANGFUSE** (required): Set to `"true"` to enable tracing
-- **LANGFUSE_PUBLIC_KEY** (required): Your Langfuse public API key
-- **LANGFUSE_SECRET_KEY** (required): Your Langfuse secret API key
-- **LANGFUSE_HOST** (optional): Langfuse server URL (defaults to `https://cloud.langfuse.com`)
-- **CC_LANGFUSE_DEBUG** (optional): Set to `"true"` to enable debug logging
-- **CC_LANGFUSE_USER_ID** (optional): Explicit user identifier sent to Langfuse for per-user analytics. If not set, auto-detected via: `LANGFUSE_USER_ID` env var → git config email → git config name → OS username → `"unknown"`.
+| Variable | Required | Description |
+|---|---|---|
+| `TRACE_TO_LANGFUSE` | Yes | Set to `"true"` to enable tracing |
+| `LANGFUSE_PUBLIC_KEY` | Yes | Your Langfuse public API key (`pk-lf-...`) |
+| `LANGFUSE_SECRET_KEY` | Yes | Your Langfuse secret API key (`sk-lf-...`) |
+| `LANGFUSE_HOST` | No | Langfuse server URL (defaults to `https://cloud.langfuse.com`) |
+| `CC_LANGFUSE_DEBUG` | No | Set to `"true"` to enable verbose debug logging |
+| `CC_LANGFUSE_USER_ID` | No | Explicit user identity for Langfuse. Auto-detected if not set: `LANGFUSE_USER_ID` env → git email → git name → OS username → `"unknown"` |
 
-You can also use the `CC_LANGFUSE_*` prefixed versions of the keys:
-- `CC_LANGFUSE_PUBLIC_KEY`
-- `CC_LANGFUSE_SECRET_KEY`
-- `CC_LANGFUSE_HOST`
+You can also use `CC_LANGFUSE_*` prefixed variants: `CC_LANGFUSE_PUBLIC_KEY`, `CC_LANGFUSE_SECRET_KEY`, `CC_LANGFUSE_HOST`.
 
 #### Hook Configuration
 
@@ -288,10 +297,26 @@ Claude Code Session
 
 ### Hooks Not Running
 
-1. Check that `TRACE_TO_LANGFUSE=true` is set in your environment
-2. Verify hooks are configured in your settings.json
+1. Verify `TRACE_TO_LANGFUSE=true` is in `~/.claude/settings.json` (not `settings.local.json` — plugin hooks don't inherit from it)
+2. Run `/hooks` in Claude Code to confirm the claude-fuse hooks appear in the list
 3. Check `~/.claude/state/langfuse_hook.log` for error messages
-4. Ensure uv is installed and in your PATH
+4. Ensure `uv` is installed and in your PATH
+
+### Plugin Install Fails or Hooks Don't Appear After Install
+
+Stale temporary directories from a failed install can block future installs. Clean them up and reinstall:
+
+```bash
+rm -rf ~/.claude/plugins/cache/temp_github_*
+```
+
+Then in Claude Code:
+
+```
+/plugin uninstall claude-fuse
+/plugin install claude-fuse
+/reload-plugins
+```
 
 ### Missing Traces in Langfuse
 
