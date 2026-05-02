@@ -37,6 +37,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 
 - [uv](https://github.com/astral-sh/uv) package manager (required)
   - Unix: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  - MacOS: `brew install uv`
   - Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - A [Langfuse](https://langfuse.com/) account (free tier available)
 - Claude Code CLI
