@@ -22,6 +22,8 @@ from common import (
     load_state,
     save_state,
     propagate_session_attributes,
+    _get_session_state,
+    _make_state_key,
 )
 from transcript import create_trace, parse_transcript_into_turns
 
@@ -56,7 +58,9 @@ def main() -> None:
 
     try:
         state = load_state()
-        subagent_info = state.get(session_id, {}).get("subagents", {}).get(agent_id, {})
+        transcript_path = hook_input.get("transcript_path", "")
+        session_state = _get_session_state(state, session_id, transcript_path)
+        subagent_info = session_state.get("subagents", {}).get(agent_id, {})
 
         duration_seconds = None
         if "started_at" in subagent_info:
@@ -179,9 +183,9 @@ def main() -> None:
 
         # Wrap state cleanup in try/except (critical fix)
         try:
-            if session_id in state and "subagents" in state[session_id]:
-                state[session_id]["subagents"].pop(agent_id, None)
-                save_state(state)
+            if "subagents" in session_state:
+                session_state["subagents"].pop(agent_id, None)
+            save_state(state)
         except Exception as state_err:
             log("ERROR", f"Failed to clean up state: {state_err}")
             traceback.print_exc()

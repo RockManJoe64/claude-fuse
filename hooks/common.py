@@ -2,6 +2,7 @@
 Shared infrastructure for Claude Code Langfuse hooks.
 """
 
+import hashlib
 import json
 import os
 import platform
@@ -17,6 +18,40 @@ from typing import Any
 LOG_FILE = Path.home() / ".claude" / "state" / "langfuse_hook.log"
 STATE_FILE = Path.home() / ".claude" / "state" / "langfuse_state.json"
 DEBUG = os.environ.get("CC_LANGFUSE_DEBUG", "").lower() == "true"
+
+
+def _make_state_key(session_id: str, transcript_path: str) -> str:
+    """Derive a unique state key from session_id and transcript_path.
+
+    Uses SHA256 to prevent collisions when the same session_id is used
+    with different transcript paths.
+    """
+    payload = f"{session_id}::{transcript_path}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _get_session_state(state: dict, session_id: str, transcript_path: str) -> dict:
+    """Get session state using hashed key with backward-compatible fallback.
+
+    If an old unhashed key exists and the hashed key doesn't, migrates
+    the data to the hashed key automatically. Always guarantees the key
+    exists in the returned dict reference.
+    """
+    hashed_key = _make_state_key(session_id, transcript_path)
+    if hashed_key in state:
+        return state[hashed_key]
+    # Backward compatibility: check for old unhashed key and migrate
+    if session_id in state:
+        state[hashed_key] = state.pop(session_id)
+        return state[hashed_key]
+    state[hashed_key] = {}
+    return state[hashed_key]
+
+
+def _delete_session_state(state: dict, session_id: str, transcript_path: str) -> None:
+    """Remove session state for both hashed and legacy keys."""
+    state.pop(_make_state_key(session_id, transcript_path), None)
+    state.pop(session_id, None)
 
 
 def _acquire_file_lock(file_path: Path, timeout: float = 1.0):

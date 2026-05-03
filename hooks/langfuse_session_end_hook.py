@@ -20,6 +20,8 @@ from common import (
     load_state,
     save_state,
     propagate_session_attributes,
+    _get_session_state,
+    _delete_session_state,
 )
 
 
@@ -43,7 +45,8 @@ def main() -> None:
 
     try:
         state = load_state()
-        session_state = state.get(session_id, {})
+        transcript_path = hook_input.get("transcript_path", "")
+        session_state = _get_session_state(state, session_id, transcript_path)
         started_at = session_state.get("started_at")
         turn_count = session_state.get("turn_count", 0)
 
@@ -106,14 +109,16 @@ def main() -> None:
             if session_id in state:
                 # Save state to temp variable before deletion
                 state_backup = dict(state)
-                del state[session_id]
+                _delete_session_state(state, session_id, transcript_path)
                 save_state(state)
                 state_saved = True
         except Exception as e:
-            log("ERROR", f"Failed to delete session state for {session_id}: {e}\n{traceback.format_exc()}")
+            log("ERROR", f"Failed to delete session state for {session_id}: {e}
+{traceback.format_exc()}")
             if not state_saved:
                 try:
                     # Attempt to restore from backup if save failed
+                    state_backup = dict(state)
                     save_state(state_backup)
                 except Exception as restore_error:
                     log("ERROR", f"Failed to restore state backup: {restore_error}")

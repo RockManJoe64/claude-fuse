@@ -17,17 +17,18 @@ from pathlib import Path
 from common import (
     read_hook_input, is_tracing_enabled, create_langfuse_client,
     log, debug, load_state, save_state,
+    _get_session_state, _make_state_key,
 )
 from transcript import create_trace, parse_transcript_into_turns
 
 
-def process_transcript(langfuse, session_id: str, transcript_file: Path, state: dict) -> int:
+def process_transcript(langfuse, session_id: str, transcript_path: str, transcript_file: Path, state: dict) -> int:
     """Process a transcript file and create traces for new turns.
 
     Uses streaming to avoid loading entire files into memory.
     Implements fault-tolerant state management and JSON parsing.
     """
-    session_state = state.get(session_id, {})
+    session_state = _get_session_state(state, session_id, transcript_path)
     last_line = session_state.get("last_line", 0)
     turn_count = session_state.get("turn_count", 0)
 
@@ -106,7 +107,7 @@ def process_transcript(langfuse, session_id: str, transcript_file: Path, state: 
     try:
         # Create temporary backup and save new state safely
         old_state = state.copy()
-        state[session_id] = new_state
+        state[_make_state_key(session_id, transcript_path)] = new_state
 
         # Attempt to save state to temp location first
         temp_file = None
@@ -183,7 +184,7 @@ def main():
 
     turns = 0
     try:
-        turns = process_transcript(langfuse, session_id, transcript_file, state)
+        turns = process_transcript(langfuse, session_id, transcript_path, transcript_file, state)
     except Exception as e:
         log("ERROR", f"Failed to process transcript: {e}")
         debug(f"Traceback: {traceback.format_exc()}")

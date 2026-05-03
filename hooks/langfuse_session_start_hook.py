@@ -24,6 +24,8 @@ from common import (
     load_state,
     save_state,
     propagate_session_attributes,
+    _get_session_state,
+    _make_state_key,
 )
 
 
@@ -222,9 +224,10 @@ def main():
         # Save state
         try:
             state = load_state()
-            state[session_id] = state.get(session_id, {})
-            state[session_id]["started_at"] = datetime.now(timezone.utc).isoformat()
-            state[session_id]["source"] = source
+            transcript_path = hook_input.get("transcript_path", "")
+            session_state = _get_session_state(state, session_id, transcript_path)
+            session_state["started_at"] = datetime.now(timezone.utc).isoformat()
+            session_state["source"] = source
             save_state(state)
         except Exception as e:
             log(
