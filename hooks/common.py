@@ -74,6 +74,30 @@ def truncate_text(text: str) -> tuple[str, dict]:
             "truncated_to": max_chars,
         }
     return text, {"truncated": False}
+
+
+def read_new_jsonl(file_path: str, offset: int = 0) -> tuple[list, int]:
+    """Read new JSONL records from a file starting at a byte offset.
+
+    Returns (records, new_offset) where new_offset is the byte position
+    after the last successfully read line.
+    """
+    records = []
+    try:
+        with open(file_path, 'rb') as f:
+            f.seek(offset)
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+            new_offset = f.tell()
+    except (IOError, OSError):
+        return [], offset
+    return records, new_offset
 def _acquire_file_lock(file_path: Path, timeout: float = 1.0):
     """Acquire a file lock using platform-specific methods.
 
