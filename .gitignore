@@ -209,5 +209,9 @@ __marimo__/
 # Agentic Coding
 settings.local.json
 
+# Generated / temporary files
+opencode.json
+tmp/
+
 # Git worktrees
 .worktrees/
