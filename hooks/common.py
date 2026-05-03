@@ -15,8 +15,8 @@ from pathlib import Path
 from contextlib import contextmanager
 from typing import Any
 
-LOG_FILE = Path.home() / ".claude" / "state" / "langfuse_hook.log"
-STATE_FILE = Path.home() / ".claude" / "state" / "langfuse_state.json"
+LOG_FILE = Path.home() / ".claude" / "state" / "claudefuse_hooks.log"
+STATE_FILE = Path.home() / ".claude" / "state" / "claudefuse_state.json"
 DEBUG = os.environ.get("CC_LANGFUSE_DEBUG", "").lower() == "true"
 
 

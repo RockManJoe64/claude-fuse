@@ -132,7 +132,7 @@ Claude Code Session
 Provides shared utilities used by all hooks:
 
 - **State management**: Load/save session state with file locking
-- **Logging**: Centralized logging to `~/.claude/state/langfuse_hook.log`
+- **Logging**: Centralized logging to `~/.claude/state/claudefuse_hooks.log`
 - **Input parsing**: Read and validate JSON hook input from stdin
 - **Langfuse client**: Initialize authenticated Langfuse client
 - **Message parsing**: Extract content, tool calls, and text from transcript messages
