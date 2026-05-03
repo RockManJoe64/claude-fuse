@@ -2,6 +2,7 @@
 Shared infrastructure for Claude Code Langfuse hooks.
 """
 
+import hashlib
 import json
 import os
 import platform
@@ -14,11 +15,89 @@ from pathlib import Path
 from contextlib import contextmanager
 from typing import Any
 
-LOG_FILE = Path.home() / ".claude" / "state" / "langfuse_hook.log"
-STATE_FILE = Path.home() / ".claude" / "state" / "langfuse_state.json"
+LOG_FILE = Path.home() / ".claude" / "state" / "claudefuse_hooks.log"
+STATE_FILE = Path.home() / ".claude" / "state" / "claudefuse_state.json"
 DEBUG = os.environ.get("CC_LANGFUSE_DEBUG", "").lower() == "true"
 
 
+def _make_state_key(session_id: str, transcript_path: str) -> str:
+    """Derive a unique state key from session_id and transcript_path.
+
+    Uses SHA256 to prevent collisions when the same session_id is used
+    with different transcript paths.
+    """
+    payload = f"{session_id}::{transcript_path}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _get_session_state(state: dict, session_id: str, transcript_path: str) -> dict:
+    """Get session state using hashed key with backward-compatible fallback.
+
+    If an old unhashed key exists and the hashed key doesn't, migrates
+    the data to the hashed key automatically. Always guarantees the key
+    exists in the returned dict reference.
+    """
+    hashed_key = _make_state_key(session_id, transcript_path)
+    if hashed_key in state:
+        return state[hashed_key]
+    # Backward compatibility: check for old unhashed key and migrate
+    if session_id in state:
+        state[hashed_key] = state.pop(session_id)
+        return state[hashed_key]
+    state[hashed_key] = {}
+    return state[hashed_key]
+
+
+def _delete_session_state(state: dict, session_id: str, transcript_path: str) -> None:
+    """Remove session state for both hashed and legacy keys."""
+    state.pop(_make_state_key(session_id, transcript_path), None)
+    state.pop(session_id, None)
+
+
+
+
+def truncate_text(text: str) -> tuple[str, dict]:
+    """Truncate text to CC_LANGFUSE_MAX_CHARS (default 20k) for Langfuse.
+
+    Returns (possibly_truncated_text, metadata_dict).
+    """
+    try:
+        max_chars = int(os.environ.get("CC_LANGFUSE_MAX_CHARS", "20000"))
+    except (ValueError, TypeError):
+        max_chars = 20000
+
+    original_len = len(text)
+    if original_len > max_chars:
+        return text[:max_chars], {
+            "truncated": True,
+            "original_chars": original_len,
+            "truncated_to": max_chars,
+        }
+    return text, {"truncated": False}
+
+
+def read_new_jsonl(file_path: str, offset: int = 0) -> tuple[list, int]:
+    """Read new JSONL records from a file starting at a byte offset.
+
+    Returns (records, new_offset) where new_offset is the byte position
+    after the last successfully read line.
+    """
+    records = []
+    try:
+        with open(file_path, 'rb') as f:
+            f.seek(offset)
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+            new_offset = f.tell()
+    except (IOError, OSError):
+        return [], offset
+    return records, new_offset
 def _acquire_file_lock(file_path: Path, timeout: float = 1.0):
     """Acquire a file lock using platform-specific methods.
 
@@ -294,8 +373,12 @@ def create_langfuse_client():
     secret_key = os.environ.get("CC_LANGFUSE_SECRET_KEY") or os.environ.get(
         "LANGFUSE_SECRET_KEY"
     )
-    host = os.environ.get("CC_LANGFUSE_HOST") or os.environ.get(
-        "LANGFUSE_HOST", "https://cloud.langfuse.com"
+    host = (
+        os.environ.get("CC_LANGFUSE_HOST")
+        or os.environ.get("LANGFUSE_HOST")
+        or os.environ.get("CC_LANGFUSE_BASE_URL")
+        or os.environ.get("LANGFUSE_BASE_URL")
+        or "https://cloud.langfuse.com"
     )
 
     if not public_key or not secret_key:
@@ -450,7 +533,7 @@ def propagate_session_attributes(session_id: str):
     """
     from langfuse import propagate_attributes
     user_id = get_user_id()
-    with propagate_attributes(session_id=session_id, user_id=user_id):
+    with propagate_attributes(session_id=session_id, user_id=user_id, tags=["claude-code"]):
         yield
 
 

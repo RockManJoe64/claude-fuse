@@ -1,0 +1,65 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "opencode-plugin-openspec",
+    "superpowers@git+https://github.com/obra/superpowers.git"
+  ],
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "command": [
+        "serena",
+        "start-mcp-server",
+        "--context=ide",
+        "--project-from-cwd"
+      ],
+      "enabled": true
+    },
+    "penpot": {
+      "type": "remote",
+      "url": "http://localhost:4401/mcp",
+      "enabled": false
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--no-usage-statistics"
+      ],
+      "enabled": false
+    },
+    "ark-ui": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@ark-ui/mcp"
+      ],
+      "enabled": false
+    },
+    "panda-css": {
+      "type": "local",
+      "command": [
+        "pnpm",
+        "--filter",
+        "cosmos-web-ui",
+        "exec",
+        "panda",
+        "mcp"
+      ],
+      "enabled": false
+    },
+    "plane": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.plane.so/http/mcp"
+      ],
+      "enabled": false
+    }
+  }
+}

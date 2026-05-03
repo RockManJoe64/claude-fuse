@@ -31,12 +31,12 @@ This project provides Claude Code lifecycle hooks that send telemetry to [Langfu
 - `langfuse_subagent_start_hook.py` / `langfuse_subagent_stop_hook.py` — fire when Task agents start/stop
 
 **Shared modules**:
-- `common.py` — all shared infrastructure: state load/save (`~/.claude/state/langfuse_state.json`), logging (`~/.claude/state/langfuse_hook.log`), stdin JSON parsing, Langfuse client init, message content helpers, `get_user_id()`, and the `propagate_session_attributes()` context manager
+- `common.py` — all shared infrastructure: state load/save (`~/.claude/state/claudefuse_state.json`), logging (`~/.claude/state/claudefuse_hooks.log`), stdin JSON parsing, Langfuse client init, message content helpers, `get_user_id()`, and the `propagate_session_attributes()` context manager
 - `transcript.py` — transcript parsing (`parse_transcript_into_turns`) and trace creation (`create_trace`); imports from `common` using a relative import (scripts are standalone, run directly with `uv run`)
 
 **Data flow**: Claude Code passes a JSON blob via stdin to each hook (fields: `session_id`, `transcript_path`, `cwd`, `hook_event_name`, plus event-specific fields). The stop hook streams the transcript file, groups messages into turns, and sends each turn as a Langfuse trace with nested generation and tool spans.
 
-**State file**: Hooks share mutable state (processed line counts, subagent info) via `~/.claude/state/langfuse_state.json` with file locking (platform-specific: `msvcrt` on Windows, `fcntl` on Unix).
+**State file**: Hooks share mutable state (processed line counts, subagent info) via `~/.claude/state/claudefuse_state.json` with file locking (platform-specific: `msvcrt` on Windows, `fcntl` on Unix).
 
 ## Key Configuration
 

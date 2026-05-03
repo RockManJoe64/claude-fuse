@@ -77,7 +77,7 @@ Add an `env` block to your `~/.claude/settings.json`:
 
 Replace the key values with your actual Langfuse credentials (see [Getting Langfuse API Keys](#getting-langfuse-api-keys) below).
 
-**Step 3 — Start a new Claude Code session.** Hooks activate automatically. Check `~/.claude/state/langfuse_hook.log` to confirm they're running.
+**Step 3 — Start a new Claude Code session.** Hooks activate automatically. Check `~/.claude/state/claudefuse_hooks.log` to confirm they're running.
 
 #### Advanced: Manual Setup
 
@@ -146,7 +146,7 @@ Enable debug logging to troubleshoot issues:
 }
 ```
 
-Debug logs are written to `~/.claude/state/langfuse_hook.log`
+Debug logs are written to `~/.claude/state/claudefuse_hooks.log`
 
 ## Viewing Your Data in Langfuse
 
@@ -170,7 +170,7 @@ Once configured, your Claude Code sessions will automatically appear in your Lan
 
 1. Verify `TRACE_TO_LANGFUSE=true` is in `~/.claude/settings.json` (not `settings.local.json` — plugin hooks don't inherit from it)
 2. Run `/hooks` in Claude Code to confirm the claude-fuse hooks appear in the list
-3. Check `~/.claude/state/langfuse_hook.log` for error messages
+3. Check `~/.claude/state/claudefuse_hooks.log` for error messages
 4. Ensure `uv` is installed and in your PATH
 
 ### Plugin Install Fails or Hooks Don't Appear After Install

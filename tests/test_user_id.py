@@ -152,7 +152,7 @@ def test_propagate_session_attributes_passes_session_and_user_id():
             with propagate_session_attributes("sess-123"):
                 pass
 
-    assert captured == {"session_id": "sess-123", "user_id": "testuser"}
+    assert captured == {"session_id": "sess-123", "user_id": "testuser", "tags": ["claude-code"]}
 
 
 def test_propagate_session_attributes_yields():
