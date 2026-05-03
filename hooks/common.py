@@ -54,6 +54,26 @@ def _delete_session_state(state: dict, session_id: str, transcript_path: str) ->
     state.pop(session_id, None)
 
 
+
+
+def truncate_text(text: str) -> tuple[str, dict]:
+    """Truncate text to CC_LANGFUSE_MAX_CHARS (default 20k) for Langfuse.
+
+    Returns (possibly_truncated_text, metadata_dict).
+    """
+    try:
+        max_chars = int(os.environ.get("CC_LANGFUSE_MAX_CHARS", "20000"))
+    except (ValueError, TypeError):
+        max_chars = 20000
+
+    original_len = len(text)
+    if original_len > max_chars:
+        return text[:max_chars], {
+            "truncated": True,
+            "original_chars": original_len,
+            "truncated_to": max_chars,
+        }
+    return text, {"truncated": False}
 def _acquire_file_lock(file_path: Path, timeout: float = 1.0):
     """Acquire a file lock using platform-specific methods.
 
