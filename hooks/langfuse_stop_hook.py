@@ -17,18 +17,19 @@ from pathlib import Path
 from common import (
     read_hook_input, is_tracing_enabled, create_langfuse_client,
     log, debug, load_state, save_state,
+    _get_session_state, _make_state_key,
 )
 from transcript import create_trace, parse_transcript_into_turns
 
 
-def process_transcript(langfuse, session_id: str, transcript_file: Path, state: dict) -> int:
+def process_transcript(langfuse, session_id: str, transcript_path: str, transcript_file: Path, state: dict) -> int:
     """Process a transcript file and create traces for new turns.
 
     Uses streaming to avoid loading entire files into memory.
     Implements fault-tolerant state management and JSON parsing.
     """
-    session_state = state.get(session_id, {})
-    last_line = session_state.get("last_line", 0)
+    session_state = _get_session_state(state, session_id, transcript_path)
+    offset = session_state.get("offset", session_state.get("last_line", 0))
     turn_count = session_state.get("turn_count", 0)
 
     # Validate transcript file path
@@ -41,43 +42,15 @@ def process_transcript(langfuse, session_id: str, transcript_file: Path, state: 
         log("ERROR", f"Invalid transcript file path: {e}")
         return 0
 
-    # Stream the transcript file instead of loading it all at once
+    # Read new messages incrementally by byte offset
     try:
-        with open(transcript_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+        new_messages, new_offset = read_new_jsonl(str(transcript_file), offset=offset)
     except (IOError, OSError, UnicodeDecodeError) as e:
         log("ERROR", f"Failed to read transcript file: {e}")
         return 0
 
-    total_lines = len(lines)
-
-    if last_line >= total_lines:
-        debug(f"No new lines to process (last: {last_line}, total: {total_lines})")
-        return 0
-
-    new_messages = []
-    skipped_count = 0
-    for i in range(last_line, total_lines):
-        try:
-            line = lines[i].strip()
-            if not line:
-                continue
-            msg = json.loads(line)
-            new_messages.append(msg)
-        except json.JSONDecodeError as e:
-            skipped_count += 1
-            debug(f"Skipped invalid JSON at line {i+1}: {e}")
-            continue
-        except Exception as e:
-            skipped_count += 1
-            debug(f"Error parsing line {i+1}: {e}")
-            continue
-
-    if skipped_count > 0:
-        debug(f"Skipped {skipped_count} lines with parsing errors")
-
     if not new_messages:
-        debug(f"No valid messages to process (tried {total_lines - last_line} lines)")
+        debug(f"No new messages to process from offset {offset}")
         return 0
 
     debug(f"Processing {len(new_messages)} new messages")
@@ -98,7 +71,7 @@ def process_transcript(langfuse, session_id: str, transcript_file: Path, state: 
 
     # Safe state update: save to temp file first, then overwrite on success
     new_state = {
-        "last_line": total_lines,
+        "offset": new_offset,
         "turn_count": turn_count + len(turns),
         "updated": datetime.now(timezone.utc).isoformat(),
     }
@@ -106,7 +79,7 @@ def process_transcript(langfuse, session_id: str, transcript_file: Path, state: 
     try:
         # Create temporary backup and save new state safely
         old_state = state.copy()
-        state[session_id] = new_state
+        state[_make_state_key(session_id, transcript_path)] = new_state
 
         # Attempt to save state to temp location first
         temp_file = None
@@ -183,7 +156,7 @@ def main():
 
     turns = 0
     try:
-        turns = process_transcript(langfuse, session_id, transcript_file, state)
+        turns = process_transcript(langfuse, session_id, transcript_path, transcript_file, state)
     except Exception as e:
         log("ERROR", f"Failed to process transcript: {e}")
         debug(f"Traceback: {traceback.format_exc()}")

@@ -19,6 +19,7 @@ from common import (
     load_state,
     save_state,
     propagate_session_attributes,
+    _get_session_state,
 )
 
 
@@ -96,17 +97,16 @@ def main():
                 log("WARNING", "State is not a dict, reinitializing")
                 state = {}
 
-            # Validate and initialize session state
-            if session_id not in state or not isinstance(state[session_id], dict):
-                state[session_id] = {}
+            transcript_path = hook_input.get("transcript_path", "")
+            session_state = _get_session_state(state, session_id, transcript_path)
 
-            if "subagents" not in state[session_id] or not isinstance(
-                state[session_id]["subagents"], dict
+            if "subagents" not in session_state or not isinstance(
+                session_state["subagents"], dict
             ):
-                state[session_id]["subagents"] = {}
+                session_state["subagents"] = {}
 
             # Update subagent information
-            state[session_id]["subagents"][agent_id] = {
+            session_state["subagents"][agent_id] = {
                 "started_at": datetime.now(timezone.utc).isoformat(),
                 "agent_type": agent_type,
             }

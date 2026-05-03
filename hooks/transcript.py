@@ -13,6 +13,35 @@ from common import (
 )
 
 
+
+
+def _deduplicate_assistant_messages(msgs: list) -> list:
+    """Deduplicate assistant messages by message.id, keeping last occurrence."""
+    by_id = {}
+    for msg in msgs:
+        msg_id = None
+        if isinstance(msg, dict) and "message" in msg:
+            msg_dict = msg.get("message")
+            if isinstance(msg_dict, dict):
+                msg_id = msg_dict.get("id")
+        if msg_id:
+            by_id[msg_id] = msg
+
+    seen_ids = set()
+    result = []
+    for msg in msgs:
+        msg_id = None
+        if isinstance(msg, dict) and "message" in msg:
+            msg_dict = msg.get("message")
+            if isinstance(msg_dict, dict):
+                msg_id = msg_dict.get("id")
+        if msg_id:
+            if msg_id not in seen_ids:
+                seen_ids.add(msg_id)
+                result.append(by_id[msg_id])
+        else:
+            result.append(msg)
+    return result
 def parse_transcript_into_turns(messages: list) -> list[tuple[dict, list, list]]:
     """Groups a list of parsed JSON messages into turns.
 
@@ -323,6 +352,7 @@ def create_trace(langfuse, session_id, turn_num, user_msg, assistant_msgs, tool_
 
                                     with langfuse.start_as_current_observation(
                                         name=tool_span_name,
+                                        as_type="tool",
                                         input=tool_call.get("input", {}),
                                         metadata=build_metadata({
                                             "tool_name": tool_call.get("name", "unknown"),
