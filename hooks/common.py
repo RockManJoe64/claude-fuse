@@ -373,8 +373,12 @@ def create_langfuse_client():
     secret_key = os.environ.get("CC_LANGFUSE_SECRET_KEY") or os.environ.get(
         "LANGFUSE_SECRET_KEY"
     )
-    host = os.environ.get("CC_LANGFUSE_HOST") or os.environ.get(
-        "LANGFUSE_HOST", "https://cloud.langfuse.com"
+    host = (
+        os.environ.get("CC_LANGFUSE_HOST")
+        or os.environ.get("LANGFUSE_HOST")
+        or os.environ.get("CC_LANGFUSE_BASE_URL")
+        or os.environ.get("LANGFUSE_BASE_URL")
+        or "https://cloud.langfuse.com"
     )
 
     if not public_key or not secret_key:
@@ -529,7 +533,7 @@ def propagate_session_attributes(session_id: str):
     """
     from langfuse import propagate_attributes
     user_id = get_user_id()
-    with propagate_attributes(session_id=session_id, user_id=user_id):
+    with propagate_attributes(session_id=session_id, user_id=user_id, tags=["claude-code"]):
         yield
 
 

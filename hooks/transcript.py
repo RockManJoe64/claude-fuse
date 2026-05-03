@@ -352,6 +352,7 @@ def create_trace(langfuse, session_id, turn_num, user_msg, assistant_msgs, tool_
 
                                     with langfuse.start_as_current_observation(
                                         name=tool_span_name,
+                                        as_type="tool",
                                         input=tool_call.get("input", {}),
                                         metadata=build_metadata({
                                             "tool_name": tool_call.get("name", "unknown"),
