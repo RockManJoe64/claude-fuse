@@ -2,7 +2,7 @@
 
 # claude-fuse
 
-A comprehensive set of Claude Code hooks for capturing telemetry, usage metrics, and conversation traces using Langfuse. These hooks provide complete observability into your Claude Code sessions, including session lifecycle, conversation turns, tool usage, and subagent execution.
+A comprehensive set of Claude Code hooks for capturing telemetry, usage metrics, and conversation traces using Langfuse. Provides complete observability into your Claude Code sessions, including session lifecycle, conversation turns, tool usage, and subagent execution.
 
 ## Table of Contents
 
@@ -13,7 +13,6 @@ A comprehensive set of Claude Code hooks for capturing telemetry, usage metrics,
   - [Getting Langfuse API Keys](#getting-langfuse-api-keys)
   - [Configuration Options](#configuration-options)
 - [Viewing Your Data in Langfuse](#viewing-your-data-in-langfuse)
-
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
@@ -36,8 +35,7 @@ All captured data is sent to Langfuse where you can visualize, analyze, and moni
 ### Prerequisites
 
 - [uv](https://github.com/astral-sh/uv) package manager (required)
-  - Unix: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-  - MacOS: `brew install uv`
+  - Linux and MacOS: `curl -LsSf https://astral.sh/uv/install.sh | sh`
   - Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - A [Langfuse](https://langfuse.com/) account (free tier available)
 - Claude Code CLI
@@ -52,6 +50,7 @@ Install claude-fuse as a Claude Code plugin in three steps:
 
 **Step 1 — Add the marketplace and install:**
 
+Within a Claude Code Session:
 ```
 /plugin marketplace add RockManJoe64/claude-fuse
 /plugin install claude-fuse
